@@ -1,3 +1,20 @@
+# Celtra readme
+We use this repo to store compiled WebAssembly version of Raqm library which is then used in UAB project since we do not want to add all C source files and entire LLVM and binaryen suites to uab repo and build the library during docker build.
+We need to do some modifications to the library or compilation process and thus cannot use the original version from [harfbuzz/harfbuzzjs](https://harfbuzz.github.io/harfbuzzjs/). Currently (November 2021) we just additionaly exposed one function which is removed from original to save a few bytes.
+
+## Building
+* Build guide is below, additionally you need to install meson and ninja. First build harfbuzz, then fribidi, then raqm.
+
+## General notes, useful links
+* Learn about pointers and memory allocation in C, since it's required to call web assembly functions. We expose the results as normal JS objects but gluie code is required to do that (see the example below).
+* Read the introduction guide to text shaping: https://harfbuzz.github.io/what-is-harfbuzz.html
+* Harfbuzz manual, function signatures: https://harfbuzz.github.io/reference-manual.html
+* Harfbuzz source: https://github.com/harfbuzz/harfbuzz (sometimes you need this since the reference funciton signatures don't include all the memory you need to allocate or is simply a bit wrong)
+* Raqm (tiny wrapper around fribidi and harfbuzz to handle bidirectional text) source: https://github.com/HOST-Oman/libraqm
+* Note that this repo already also includes fribidi and raqm and build configs for wasm compilation 
+
+
+
 # harfbuzzjs
 Providing [HarfBuzz](https://github.com/harfbuzz/harfbuzz) shaping
 library for client/server side JavaScript projects.
