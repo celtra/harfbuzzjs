@@ -30,6 +30,7 @@ clang \
     -Wl,--export=hb_font_create \
     -Wl,--export=hb_font_set_scale \
     -Wl,--export=hb_font_destroy \
+    -Wl,--export=hb_ot_metrics_get_position \
     -Wl,--export=raqm_create \
     -Wl,--export=raqm_reference \
     -Wl,--export=raqm_destroy \
