@@ -36,6 +36,14 @@ _hb_set_next_many
 _hb_shape
 _hb_ot_metrics_get_position
 _hb_style_get_value
+_hb_ot_color_palette_get_flags
+_hb_ot_color_palette_get_colors
+_hb_ot_color_has_layers
+_hb_ot_color_glyph_get_layers
+_hb_ot_color_has_svg
+_hb_ot_color_glyph_reference_svg
+_hb_ot_color_has_png
+_hb_ot_color_glyph_reference_png
 _hbjs_glyph_svg
 _hbjs_shape_with_trace
 _malloc
