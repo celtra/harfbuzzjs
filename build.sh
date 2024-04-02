@@ -9,6 +9,8 @@ emcc \
 	-fno-rtti \
 	-fno-threadsafe-statics \
 	-fvisibility-inlines-hidden \
+	-fsanitize=address \
+	-sASSERTIONS \
 	-flto \
 	-Oz \
     -r \
@@ -31,6 +33,8 @@ em++ \
 	-fno-rtti \
 	-fno-threadsafe-statics \
 	-fvisibility-inlines-hidden \
+	-fsanitize=address \
+	-sASSERTIONS \
 	-flto \
 	-Oz \
 	-I. \
@@ -53,6 +57,8 @@ emcc \
 	-fno-threadsafe-statics \
 	-fvisibility-inlines-hidden \
 	-flto \
+	-fsanitize=address \
+	-sASSERTIONS \
 	-Oz \
 	fribidi.o \
 	hb.o \
@@ -66,5 +72,4 @@ emcc \
 	-sLLD_REPORT_UNDEFINED \
 	-s EXPORTED_FUNCTIONS=@hbjs.symbols \
 	-s INITIAL_MEMORY=100MB \
-	-s WASM=1 \
-	-o raqm.wasm
+	-s WASM=1

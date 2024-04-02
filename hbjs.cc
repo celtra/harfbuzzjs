@@ -1,5 +1,20 @@
 #include "harfbuzz/src/harfbuzz.cc"
 
+#include <sanitizer/lsan_interface.h>
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer)
+  extern "C" void lsan_do_leak_check();
+  void lsan_do_leak_check (){
+    __lsan_do_leak_check();
+  }
+
+  extern "C" void lsan_do_recoverable_leak_check();
+  void lsan_do_recoverable_leak_check (){
+    __lsan_do_recoverable_leak_check();
+  }
+#endif
+#endif
+
 HB_BEGIN_DECLS
 
 int
