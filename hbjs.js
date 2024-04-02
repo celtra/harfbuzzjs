@@ -9,6 +9,7 @@ function hbjs(instance) {
   var utf8Decoder = new TextDecoder("utf8");
 
   var HB_MEMORY_MODE_WRITABLE = 2;
+  var HB_SET_VALUE_INVALID = -1;
 
   function hb_tag(s) {
     return (
@@ -52,6 +53,42 @@ function hbjs(instance) {
       */
       destroy: function () { exports.hb_blob_destroy(ptr); }
     };
+  }
+
+  /**
+   * Return the typed array of HarfBuzz set contents.
+   * @template {typeof Uint8Array | typeof Uint32Array | typeof Int32Array | typeof Float32Array} T
+   * @param {number} setPtr Pointer of set
+   * @param {T} arrayClass Typed array class
+   * @returns {InstanceType<T>} Typed array instance
+   */
+  function typedArrayFromSet(setPtr, arrayClass) {
+    let heap = heapu8;
+    if (arrayClass === Uint32Array) {
+      heap = heapu32;
+    } else if (arrayClass === Int32Array) {
+      heap = heapi32;
+    } else if (arrayClass === Float32Array) {
+      heap = heapf32;
+    }
+    const bytesPerElment = arrayClass.BYTES_PER_ELEMENT;
+    const setCount = exports.hb_set_get_population(setPtr);
+    const arrayPtr = exports.malloc(
+      setCount * bytesPerElment,
+    );
+    const arrayOffset = arrayPtr / bytesPerElment;
+    const array = heap.subarray(
+      arrayOffset,
+      arrayOffset + setCount,
+    );
+    heap.set(array, arrayOffset);
+    exports.hb_set_next_many(
+      setPtr,
+      HB_SET_VALUE_INVALID,
+      arrayPtr,
+      setCount,
+    );
+    return array;
   }
 
   /**
@@ -99,6 +136,16 @@ function hbjs(instance) {
         return result;
       },
       /**
+       * Return unicodes the face supports
+       */
+      collectUnicodes: function() {
+        var unicodeSetPtr = exports.hb_set_create();
+        exports.hb_face_collect_unicodes(ptr, unicodeSetPtr);
+        var result = typedArrayFromSet(unicodeSetPtr, Uint32Array);
+        exports.hb_set_destroy(ptr);
+        return result;
+      },
+      /**
        * Free the object.
        */
       destroy: function () {
@@ -109,6 +156,9 @@ function hbjs(instance) {
 
   var pathBufferSize = 65536; // should be enough for most glyphs
   var pathBuffer = exports.malloc(pathBufferSize); // permanently allocated
+
+  var nameBufferSize = 256; // should be enough for most glyphs
+  var nameBuffer = exports.malloc(nameBufferSize); // permanently allocated
 
   /**
   * Create an object representing a Harfbuzz font.
@@ -126,8 +176,24 @@ function hbjs(instance) {
       return svgLength > 0 ? utf8Decoder.decode(heapu8.subarray(pathBuffer, pathBuffer + svgLength)) : "";
     }
 
+    /**
+     * Return glyph name.
+     * @param {number} glyphId ID of the requested glyph in the font.
+     **/
+    function glyphName(glyphId) {
+      exports.hb_font_glyph_to_string(
+        ptr,
+        glyphId,
+        nameBuffer,
+        nameBufferSize
+      );
+      var array = heapu8.subarray(nameBuffer, nameBuffer + nameBufferSize);
+      return utf8Decoder.decode(array.slice(0, array.indexOf(0)));
+    }
+
     return {
       ptr: ptr,
+      glyphName: glyphName,
       glyphToPath: glyphToPath,
       /**
       * Return a glyph as a JSON path string
@@ -287,12 +353,14 @@ function hbjs(instance) {
       *   - ax: Advance width (width to advance after this glyph is painted)
       *   - ay: Advance height (height to advance after this glyph is painted)
       *   - dx: X displacement (adjustment in X dimension when painting this glyph)
-      *   - d5: Y displacement (adjustment in Y dimension when painting this glyph)
+      *   - dy: Y displacement (adjustment in Y dimension when painting this glyph)
+      *   - flags: Glyph flags like `HB_GLYPH_FLAG_UNSAFE_TO_BREAK` (0x1)
       **/
-      json: function (font) {
+      json: function () {
         var length = exports.hb_buffer_get_length(ptr);
         var result = [];
-        var infosPtr32 = exports.hb_buffer_get_glyph_infos(ptr, 0) / 4;
+        var infosPtr = exports.hb_buffer_get_glyph_infos(ptr, 0);
+        var infosPtr32 = infosPtr / 4;
         var positionsPtr32 = exports.hb_buffer_get_glyph_positions(ptr, 0) / 4;
         var infos = heapu32.subarray(infosPtr32, infosPtr32 + 5 * length);
         var positions = heapi32.subarray(positionsPtr32, positionsPtr32 + 5 * length);
@@ -303,7 +371,8 @@ function hbjs(instance) {
             ax: positions[i * 5 + 0],
             ay: positions[i * 5 + 1],
             dx: positions[i * 5 + 2],
-            dy: positions[i * 5 + 3]
+            dy: positions[i * 5 + 3],
+            flags: exports.hb_glyph_info_get_glyph_flags(infosPtr + i * 20)
           });
         }
         return result;

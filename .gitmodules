@@ -1,0 +1,9 @@
+[submodule "harfbuzz"]
+	path = harfbuzz
+	url = https://github.com/harfbuzz/harfbuzz.git
+[submodule "fribidi"]
+	path = fribidi
+	url = git@github.com:fribidi/fribidi.git
+[submodule "libraqm-nofreetype"]
+	path = libraqm-nofreetype
+	url = git@github.com:celtra/libraqm-nofreetype.git
