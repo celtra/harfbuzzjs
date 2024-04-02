@@ -9,3 +9,5 @@
 #undef HB_NO_METRICS
 #undef HB_NO_STYLE
 #undef HB_NO_LAYOUT_FEATURE_PARAMS
+#undef HB_NO_COLOR
+#undef HB_NO_AAT

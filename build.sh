@@ -65,6 +65,6 @@ emcc \
 	--no-entry \
 	-sLLD_REPORT_UNDEFINED \
 	-s EXPORTED_FUNCTIONS=@hbjs.symbols \
-	-s INITIAL_MEMORY=100MB \
+	-s INITIAL_MEMORY=250MB \
 	-s WASM=1 \
 	-o raqm.wasm

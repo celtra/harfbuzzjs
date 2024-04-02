@@ -138,7 +138,7 @@ hbjs_glyph_svg (hb_font_t *font, hb_codepoint_t glyph, char *buf, unsigned buf_s
   }
 
   user_data_t draw_data(buf, buf_size);
-  hb_font_get_glyph_shape (font, glyph, funcs, &draw_data);
+  hb_font_draw_glyph (font, glyph, funcs, &draw_data);
   if (draw_data.failure)
     return -1;
 
@@ -153,9 +153,9 @@ static hb_bool_t do_trace (hb_buffer_t *buffer,
   unsigned int consumed;
   unsigned int num_glyphs = hb_buffer_get_length (buffer);
 
-  if (strcmp(message, "start table GSUB") == 0) {
+  if (strncmp(message, "start table GSUB", 16) == 0) {
     user_data->current_phase = HB_SHAPE_GSUB_PHASE;
-  } else if (strcmp(message, "start table GPOS") == 0) {
+  } else if (strncmp(message, "start table GPOS", 16) == 0) {
     user_data->current_phase = HB_SHAPE_GPOS_PHASE;
   }
 
@@ -170,10 +170,10 @@ static hb_bool_t do_trace (hb_buffer_t *buffer,
   if (user_data->stop_phase != HB_SHAPE_DONT_STOP) {
     // Do we need to start stopping?
     char buf[12];
-    snprintf (buf, 12, "%d", user_data->stop_at);
+    snprintf (buf, 12, "%d ", user_data->stop_at);
     if ((user_data->current_phase == user_data->stop_phase) &&
         (strncmp(message, "end lookup ", 11) == 0) &&
-        (strcmp(message + 11, buf) == 0)) {
+        (strncmp(message + 11, buf, strlen(buf)) == 0)) {
       user_data->stopping = true;
     }
   }
@@ -190,6 +190,11 @@ static hb_bool_t do_trace (hb_buffer_t *buffer,
     HB_BUFFER_SERIALIZE_FORMAT_JSON,
     HB_BUFFER_SERIALIZE_FLAG_NO_GLYPH_NAMES);
   user_data->consumed += consumed;
+  if (hb_buffer_get_content_type(buffer) == HB_BUFFER_CONTENT_TYPE_GLYPHS) {
+    _user_data_printf (user_data, ", \"glyphs\": true");
+  } else {
+    _user_data_printf (user_data, ", \"glyphs\": false");
+  }
   _user_data_printf (user_data, "},\n");
 
   return 1;
